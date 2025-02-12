@@ -34,25 +34,33 @@ public class Calculator {
     private BigDecimal calculateTax(BigDecimal sellPrice, int quantity) {
         BigDecimal totalSellValue = sellPrice.multiply(BigDecimal.valueOf(quantity));
         BigDecimal totalBuyValue = weightedAvg.multiply(BigDecimal.valueOf(quantity));
+
         BigDecimal profit = totalSellValue.subtract(totalBuyValue);
+
+        System.out.println("Profit: " + profit);
+        System.out.println("Loss Carryover before profit calculation: " + lossCarryover);
 
         if (profit.compareTo(BigDecimal.ZERO) < 0) {
             lossCarryover = lossCarryover.add(profit.abs());
+            System.out.println("Loss applied, lossCarryover now: " + lossCarryover);
             return BigDecimal.ZERO;
         }
 
-        if (totalSellValue.compareTo(new BigDecimal("20000")) <= 0) {
-            return BigDecimal.ZERO;
+        if (lossCarryover.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal lossToApply = lossCarryover.min(profit);
+            profit = profit.subtract(lossToApply);
+            lossCarryover = lossCarryover.subtract(lossToApply);
+
+            System.out.println("Loss to apply: " + lossToApply);
+            System.out.println("Profit after applying loss: " + profit);
+            System.out.println("Loss Carryover after application: " + lossCarryover);
         }
 
-        if (lossCarryover.compareTo(profit) > 0) {
-            lossCarryover = lossCarryover.subtract(profit);
+        if (profit.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
-        } else {
-            profit = profit.subtract(lossCarryover);
-            lossCarryover = BigDecimal.ZERO;
         }
 
         return profit.multiply(new BigDecimal("0.20")).setScale(2, BigDecimal.ROUND_HALF_UP);
     }
+
 }
